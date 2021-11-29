@@ -60,7 +60,11 @@ namespace mediator_cqrs_project.Repositories
         {
             try
             {
-                var updatedAccount = _accountsContext.Accounts.First(x => x.DocumentNumber == account.DocumentNumber);
+                var updatedAccount = _accountsContext.Accounts.FirstOrDefault(x => x.DocumentNumber == account.DocumentNumber);
+
+                if (Equals(updatedAccount, null))
+                     throw new Exception("Object not found");
+
 
                 updatedAccount.AccountOwner = account.AccountOwner;
                 updatedAccount.AccountBalance = account.AccountBalance;

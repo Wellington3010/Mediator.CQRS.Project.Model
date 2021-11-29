@@ -33,11 +33,11 @@ namespace mediator_cqrs_project.Handlers
             {
                var account = await _accountRepository.FindByCode(request.DocumentNumber);
 
-                if(account == null)
-                {
-                   await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Conta associada ao documento {request.DocumentNumber} não encontrada" });
-                    return await Task.FromResult(new QueryAccountNotification());
-                }
+               if(Equals(account, null))
+               {
+                  await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Conta associada ao documento {request.DocumentNumber} não encontrada" });
+                  return await Task.FromResult(new QueryAccountNotification());
+               }
 
                var accountNotification = _mapper.Map<QueryAccountNotification>(account);
 
@@ -47,11 +47,11 @@ namespace mediator_cqrs_project.Handlers
             }
             catch (Exception ex)
             {
-                await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Error processing request: {ex}" });
+               await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Error processing request: {ex}" });
 
-                await Task.FromException(ex);
+               await Task.FromException(ex);
 
-                return new QueryAccountNotification();
+               return new QueryAccountNotification();
             }
         }
     }
