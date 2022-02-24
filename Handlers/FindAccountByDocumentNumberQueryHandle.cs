@@ -51,7 +51,7 @@ namespace mediator_cqrs_project.Handlers
 
                await Task.FromException(ex);
 
-               return new QueryAccountNotification();
+               return await Task.FromResult(new QueryAccountNotification());
             }
         }
     }
