@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace mediator_cqrs_project.Repositories
 {
-    public class AccountRepository : IRepository<Account>
+    public class AccountRepository : IAccountRepository
     {
-        private readonly AccountContext _accountsContext;
+        private AccountContext _accountsContext;
         public AccountRepository(AccountContext accountsContext)
         {
             this._accountsContext = accountsContext;
@@ -80,5 +80,6 @@ namespace mediator_cqrs_project.Repositories
             }
            
         }
+       
     }
 }

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using mediator_cqrs_project.Interfaces;
 using mediator_cqrs_project.Models;
 using mediator_cqrs_project.Repositories;
-using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -17,6 +16,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using AutoMapper;
+using FastMiddleware.Extensions;
 using mediator_cqrs_project.Commands;
 using mediator_cqrs_project.Notifications;
 using mediator_cqrs_project.Queries;
@@ -53,8 +53,7 @@ namespace mediator_cqrs_project
             IMapper mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
             services.AddDbContext<AccountContext>(connctionString => connctionString.UseSqlServer(Configuration.GetConnectionString("LocalConnection")));
-            services.AddScoped<IRepository<Account>, AccountRepository>();
-            services.AddMediatR(typeof(Startup).GetTypeInfo().Assembly);
+            services.AddFastMiddleware(typeof(Startup).GetTypeInfo().Assembly);
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -71,13 +70,10 @@ namespace mediator_cqrs_project
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "mediator_cqrs_project v1"));
             }
-
+            
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

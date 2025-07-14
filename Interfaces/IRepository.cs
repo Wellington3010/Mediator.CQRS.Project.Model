@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using mediator_cqrs_project.Models;
 
 namespace mediator_cqrs_project.Interfaces
 {
-    public interface IRepository<T> where T : class
+    public interface IAccountRepository
     {
-        Task<IEnumerable<T>> FindAll();
-        Task<IEnumerable<T>> FindByType(int code);
-        Task<T> FindByCode(string code);
+        Task<IEnumerable<Account>> FindAll();
+        Task<IEnumerable<Account>> FindByType(int code);
+        Task<Account> FindByCode(string code);
 
-        Task Save(T data);
+        Task Save(Account data);
 
-        Task Update(T data);
+        Task Update(Account data);
 
-        Task Delete(T data);
+        Task Delete(Account data);
     }
 }

@@ -1,13 +1,14 @@
 ﻿using mediator_cqrs_project.Commands;
 using mediator_cqrs_project.Notifications;
 using mediator_cqrs_project.Queries;
-using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using FastMiddleware.Interfaces;
 
 namespace mediator_cqrs_project.Controllers
 {
@@ -15,39 +16,41 @@ namespace mediator_cqrs_project.Controllers
     [ApiController]
     public class AccountsController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly IFastMiddleware _fastMiddleware;
 
-        public AccountsController(IMediator mediator)
+        public AccountsController(IFastMiddleware fastMiddleware)
         {
-            this._mediator = mediator; 
+            this._fastMiddleware = fastMiddleware; 
         }
 
         [HttpPost]
+        [Route("register")]
         public async Task<ActionResult> RegisterAccount([FromBody] RegisterAccountCommand request)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-          return Created(await _mediator.Send(request),request);
+          return Created(await _fastMiddleware.Send(request),request);
         }
 
-        [HttpGet]
+        [HttpPost]
+        [Route("findAccountByDocumentNumber")]
         public async Task<ActionResult> FindByAccountDocumentNumber([FromBody] FindAccountByDocumentNumberQuery request)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(await _mediator.Send(request));
+            return Ok(await _fastMiddleware.Send(request));
         }
 
-        [HttpGet]
-        [Route("type")]
+        [HttpPost]
+        [Route("findAccountByType")]
         public async Task<ActionResult> FindAccountByType([FromBody] FindAccountByTypeQuery request)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(await _mediator.Send(request));
+            return Ok(await _fastMiddleware.Send(request));
         }
 
 
@@ -57,7 +60,7 @@ namespace mediator_cqrs_project.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(await _mediator.Send(request));
+            return Ok(await _fastMiddleware.Send(request));
         }
 
         [HttpDelete]
@@ -66,7 +69,7 @@ namespace mediator_cqrs_project.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(await _mediator.Send(request));
+            return Ok(await _fastMiddleware.Send(request));
         }
     }
 }

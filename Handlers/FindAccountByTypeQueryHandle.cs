@@ -4,12 +4,15 @@ using mediator_cqrs_project.Interfaces;
 using mediator_cqrs_project.Models;
 using mediator_cqrs_project.Notifications;
 using mediator_cqrs_project.Queries;
-using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FastMiddleware.Interfaces;
+using mediator_cqrs_project.Persistence;
+using mediator_cqrs_project.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace mediator_cqrs_project.Handlers
 {
@@ -17,17 +20,17 @@ namespace mediator_cqrs_project.Handlers
     {
         private readonly IMapper _mapper;
 
-        private readonly IMediator _mediator;
+        private readonly IFastMiddleware _fastMiddleware;
 
-        private readonly IRepository<Account> _accountRepository;
+        private readonly IAccountRepository _accountRepository;
 
         private QueryAccountListNotification _accountsList;
 
-        public FindAccountByTypeQueryHandle(IMapper mapper, IMediator mediator, IRepository<Account> accountRepository)
+        public FindAccountByTypeQueryHandle(IMapper mapper, IFastMiddleware fastMiddleware)
         {
             this._mapper = mapper;
-            this._mediator = mediator;
-            this._accountRepository = accountRepository;
+            this._fastMiddleware = fastMiddleware;
+            this._accountRepository = new AccountRepository(new AccountContext(new DbContextOptions<AccountContext>()));
             this._accountsList = new QueryAccountListNotification();
             this._accountsList.accounts = new List<QueryAccountNotification>();
         }
@@ -40,7 +43,7 @@ namespace mediator_cqrs_project.Handlers
 
                 if (!accountCollection.Any())
                 {
-                    await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Contas do tipo {request.AccountType} não encontradas" });
+                    await _fastMiddleware.Publish(new ErrorNotification { ErrorMessage = $"Contas do tipo {request.AccountType} não encontradas" });
                     return await Task.FromResult(new QueryAccountListNotification());
                 }
 
@@ -50,13 +53,13 @@ namespace mediator_cqrs_project.Handlers
                     _accountsList.accounts.Add(_mapper.Map<QueryAccountNotification>(accountEnumarator.Current));
                 }
 
-                await _mediator.Publish(_accountsList);
+                await _fastMiddleware.Publish(_accountsList);
 
                 return await Task.FromResult(_accountsList);
             }
             catch (Exception ex)
             {
-                await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Error processing request: {ex}" });
+                await _fastMiddleware.Publish(new ErrorNotification { ErrorMessage = $"Error processing request: {ex}" });
 
                 return await Task.FromResult(_accountsList);
             }

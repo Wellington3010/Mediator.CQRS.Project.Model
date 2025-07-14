@@ -3,13 +3,16 @@ using mediator_cqrs_project.Commands;
 using mediator_cqrs_project.Interfaces;
 using mediator_cqrs_project.Models;
 using mediator_cqrs_project.Notifications;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FastMiddleware.Interfaces;
+using mediator_cqrs_project.Persistence;
+using mediator_cqrs_project.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace mediator_cqrs_project.Handlers
 {
@@ -17,16 +20,16 @@ namespace mediator_cqrs_project.Handlers
     {
         private readonly IMapper _mapper;
 
-        private readonly IMediator _mediator;
+        private readonly IFastMiddleware _fastMiddleware;
 
-        private readonly IRepository<Account> _accountRepository;
+        private readonly IAccountRepository _accountRepository;
 
 
-        public RegisterAccountCommandHandle(IMapper mapper, IMediator mediator, IRepository<Account> accountRepository)
+        public RegisterAccountCommandHandle(IMapper mapper, IFastMiddleware fastMiddleware)
         {
             this._mapper = mapper;
-            this._mediator = mediator;
-            this._accountRepository = accountRepository;
+            this._fastMiddleware = fastMiddleware;
+            this._accountRepository = new AccountRepository(new AccountContext(new DbContextOptions<AccountContext>()));
         }
 
 
@@ -38,13 +41,13 @@ namespace mediator_cqrs_project.Handlers
 
                 await _accountRepository.Save(account);
 
-                await _mediator.Publish(_mapper.Map<CommandAccountRegisterNotification>(account));
+                await _fastMiddleware.Publish(_mapper.Map<CommandAccountRegisterNotification>(account));
 
                 return await Task.FromResult("Account successful saved");
             }
             catch (Exception ex)
             {
-                await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Error processing request: {ex}" });
+                await _fastMiddleware.Publish(new ErrorNotification { ErrorMessage = $"Error processing request: {ex}" });
 
                 await Task.FromCanceled(cancellationToken);
 

@@ -4,11 +4,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using FastMiddleware.Interfaces;
 using mediator_cqrs_project.Commands;
 using mediator_cqrs_project.Interfaces;
 using mediator_cqrs_project.Models;
 using mediator_cqrs_project.Notifications;
-using MediatR;
+using mediator_cqrs_project.Persistence;
+using mediator_cqrs_project.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace mediator_cqrs_project.Handlers
 {
@@ -16,16 +19,16 @@ namespace mediator_cqrs_project.Handlers
     {
         private readonly IMapper _mapper;
 
-        private readonly IMediator _mediator;
+        private readonly IFastMiddleware _fastMiddleware;
 
-        private readonly IRepository<Account> _accountRepository;
+        private readonly IAccountRepository _accountRepository;
 
 
-        public UpdateAccountCommandHandle(IMapper mapper, IMediator mediator, IRepository<Account> accountRepository)
+        public UpdateAccountCommandHandle(IMapper mapper, IFastMiddleware fastMiddleware)
         {
             this._mapper = mapper;
-            this._mediator = mediator;
-            this._accountRepository = accountRepository;
+            this._fastMiddleware = fastMiddleware;
+            this._accountRepository = new AccountRepository(new AccountContext(new DbContextOptions<AccountContext>()));
         }
 
         public async Task<string> Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
@@ -36,13 +39,13 @@ namespace mediator_cqrs_project.Handlers
 
                 await _accountRepository.Update(account);
 
-                await _mediator.Publish(_mapper.Map<CommandAccountUpdateNotification>(account));
+                await _fastMiddleware.Publish(_mapper.Map<CommandAccountUpdateNotification>(account));
 
                 return await Task.FromResult("Account successful updated");
             }
             catch
             {
-                await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Erro ao atualizar conta." });
+                await _fastMiddleware.Publish(new ErrorNotification { ErrorMessage = $"Erro ao atualizar conta." });
 
                 return $"Conta não encontrada para atualização";
             }

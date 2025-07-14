@@ -3,12 +3,14 @@ using mediator_cqrs_project.Interfaces;
 using mediator_cqrs_project.Models;
 using mediator_cqrs_project.Notifications;
 using mediator_cqrs_project.Queries;
-using MediatR;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using System.Threading;
 using System.Threading.Tasks;
+using FastMiddleware.Interfaces;
+using mediator_cqrs_project.Persistence;
+using mediator_cqrs_project.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace mediator_cqrs_project.Handlers
 {
@@ -16,38 +18,38 @@ namespace mediator_cqrs_project.Handlers
     {
         private readonly IMapper _mapper;
 
-        private readonly IMediator _mediator;
+        private readonly IFastMiddleware _fastMiddleware;
 
-        private readonly IRepository<Account> _accountRepository;
+        private IAccountRepository _accountRepository;
 
-        public FindAccountByDocumentNumberQueryHandle(IMapper mapper, IMediator mediator, IRepository<Account> accountRepository)
+        public FindAccountByDocumentNumberQueryHandle(IMapper mapper, IFastMiddleware fastMiddleware)
         {
             this._mapper = mapper;
-            this._mediator = mediator;
-            this._accountRepository = accountRepository;
+            this._fastMiddleware = fastMiddleware;
+            this._accountRepository = new AccountRepository(new AccountContext(new DbContextOptions<AccountContext>()));
         }
 
         public async Task<QueryAccountNotification> Handle(FindAccountByDocumentNumberQuery request, CancellationToken cancellationToken)
         {
             try
             {
-               var account = await _accountRepository.FindByCode(request.DocumentNumber);
+                var account = new Account();
 
                if(Equals(account, null))
                {
-                  await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Conta associada ao documento {request.DocumentNumber} não encontrada" });
+                  await _fastMiddleware.Publish(new ErrorNotification { ErrorMessage = $"Conta associada ao documento {request.DocumentNumber} não encontrada" });
                   return await Task.FromResult(new QueryAccountNotification());
                }
 
                var accountNotification = _mapper.Map<QueryAccountNotification>(account);
 
-               await _mediator.Publish(accountNotification);
+               await _fastMiddleware.Publish(accountNotification);
 
                return await Task.FromResult(accountNotification);
             }
             catch (Exception ex)
             {
-               await _mediator.Publish(new ErrorNotification { ErrorMessage = $"Error processing request: {ex}" });
+               await _fastMiddleware.Publish(new ErrorNotification { ErrorMessage = $"Error processing request: {ex}" });
 
                await Task.FromException(ex);
 
