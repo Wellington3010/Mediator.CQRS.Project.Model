@@ -7,51 +7,65 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace mediator_cqrs_project.Repositories
 {
-    public class AccountRepository : IAccountRepository
+    public class AccountRepository : IRepository<Account>
     {
-        private AccountContext _accountsContext;
-        public AccountRepository(AccountContext accountsContext)
-        {
-            this._accountsContext = accountsContext;
-        }
-
+        public AccountRepository() { }
+       
         public async Task Delete(Account account)
         {
+            var serviceCollection = new ServiceCollection();
+            using var scope = serviceCollection.BuildServiceProvider().CreateScope();
+            var accountContext = scope.ServiceProvider.GetRequiredService<AccountContext>();
+
             await Task.Run(() => {
 
-                _accountsContext.Accounts.Remove(account);
+                accountContext.Accounts.Remove(account);
 
-                _accountsContext.SaveChanges();
+                accountContext.SaveChanges();
             });
         }
 
         public async Task<IEnumerable<Account>> FindAll()
         {
-            return await Task.Run(() => _accountsContext.Accounts.AsEnumerable());
+            var serviceCollection = new ServiceCollection();
+            using var scope = serviceCollection.BuildServiceProvider().CreateScope();
+            var accountContext = scope.ServiceProvider.GetRequiredService<AccountContext>();
+            return await Task.Run(() => accountContext.Accounts.AsEnumerable());
         }
 
         public async Task<IEnumerable<Account>> FindByType(int accountType)
         {
-            return await Task.Run(() => _accountsContext.Accounts.Where(x => x.AccountType == accountType).AsEnumerable());
+            var serviceCollection = new ServiceCollection();
+            using var scope = serviceCollection.BuildServiceProvider().CreateScope();
+            var accountContext = scope.ServiceProvider.GetRequiredService<AccountContext>();
+            return await Task.Run(() => accountContext.Accounts.Where(x => x.AccountType == accountType).AsEnumerable());
         }
 
 
         public async Task<Account> FindByCode(string documentNumber)
         {
-           return await Task.Run(() => _accountsContext.Accounts.FirstOrDefault(x => x.DocumentNumber == documentNumber));
+           var serviceCollection = new ServiceCollection();
+           using var scope = serviceCollection.BuildServiceProvider().CreateScope();
+           var accountContext = scope.ServiceProvider.GetRequiredService<AccountContext>();
+           return await Task.Run(() => accountContext.Accounts.FirstOrDefault(x => x.DocumentNumber == documentNumber));
         }
 
 
         public async Task Save(Account account)
         {
+           var serviceCollection = new ServiceCollection();
+           using var scope = serviceCollection.BuildServiceProvider().CreateScope();
+           var accountContext = scope.ServiceProvider.GetRequiredService<AccountContext>();
+           
            await Task.Run(() => {
 
-               _accountsContext.Accounts.Add(account);
+               accountContext.Accounts.Add(account);
 
-               _accountsContext.SaveChanges();
+               accountContext.SaveChanges();
            });
         }
 
@@ -60,19 +74,22 @@ namespace mediator_cqrs_project.Repositories
         {
             try
             {
-                var updatedAccount = _accountsContext.Accounts.FirstOrDefault(x => x.DocumentNumber == account.DocumentNumber);
+                var serviceCollection = new ServiceCollection();
+                using var scope = serviceCollection.BuildServiceProvider().CreateScope();
+                var accountContext = scope.ServiceProvider.GetRequiredService<AccountContext>();
+                
+                var updatedAccount = accountContext.Accounts.FirstOrDefault(x => x.DocumentNumber == account.DocumentNumber);
 
                 if (Equals(updatedAccount, null))
                      throw new Exception("Object not found");
-
 
                 updatedAccount.AccountOwner = account.AccountOwner;
                 updatedAccount.AccountBalance = account.AccountBalance;
                 updatedAccount.AccountType = account.AccountType;
 
-                _accountsContext.Entry(updatedAccount).State = EntityState.Modified;
+                accountContext.Entry(updatedAccount).State = EntityState.Modified;
 
-                await _accountsContext.SaveChangesAsync();
+                await accountContext.SaveChangesAsync();
             }
             catch
             {

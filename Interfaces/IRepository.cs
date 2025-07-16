@@ -6,16 +6,16 @@ using mediator_cqrs_project.Models;
 
 namespace mediator_cqrs_project.Interfaces
 {
-    public interface IAccountRepository
+    public interface IRepository<T> where T : class
     {
-        Task<IEnumerable<Account>> FindAll();
-        Task<IEnumerable<Account>> FindByType(int code);
-        Task<Account> FindByCode(string code);
+        Task<IEnumerable<T>> FindAll();
+        Task<IEnumerable<T>> FindByType(int code);
+        Task<T> FindByCode(string code);
 
-        Task Save(Account data);
+        Task Save(T data);
 
-        Task Update(Account data);
+        Task Update(T data);
 
-        Task Delete(Account data);
+        Task Delete(T data);
     }
 }

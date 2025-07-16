@@ -20,13 +20,13 @@ namespace mediator_cqrs_project.Handlers
 
         private readonly IFastMiddleware _fastMiddleware;
 
-        private IAccountRepository _accountRepository;
+        private readonly IRepository<Account> _accountRepository;
 
-        public FindAccountByDocumentNumberQueryHandle(IMapper mapper, IFastMiddleware fastMiddleware)
+        public FindAccountByDocumentNumberQueryHandle(IMapper mapper, IFastMiddleware fastMiddleware, IRepository<Account> accountRepository)
         {
             this._mapper = mapper;
             this._fastMiddleware = fastMiddleware;
-            this._accountRepository = new AccountRepository(new AccountContext(new DbContextOptions<AccountContext>()));
+            this._accountRepository = accountRepository;
         }
 
         public async Task<QueryAccountNotification> Handle(FindAccountByDocumentNumberQuery request, CancellationToken cancellationToken)

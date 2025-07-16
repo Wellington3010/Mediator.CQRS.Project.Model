@@ -19,16 +19,16 @@ namespace mediator_cqrs_project.Handlers
     {
         private readonly IFastMiddleware _fastMiddleware;
 
-        private readonly IAccountRepository _accountRepository;
+        private readonly IRepository<Account> _accountRepository;
 
         private readonly IMapper _mapper;
 
 
-        public DeleteAccountCommandHandle(IFastMiddleware fastMiddleware, IMapper mapper)
+        public DeleteAccountCommandHandle(IFastMiddleware fastMiddleware, IMapper mapper, IRepository<Account> accountRepository)
         {
             this._fastMiddleware = fastMiddleware;
             this._mapper = mapper;
-            this._accountRepository = new AccountRepository(new AccountContext(new DbContextOptions<AccountContext>()));
+            this._accountRepository = accountRepository;
         }
         public async Task<string> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
         {

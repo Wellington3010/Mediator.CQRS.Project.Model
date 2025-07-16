@@ -22,15 +22,15 @@ namespace mediator_cqrs_project.Handlers
 
         private readonly IFastMiddleware _fastMiddleware;
 
-        private readonly IAccountRepository _accountRepository;
+        private readonly IRepository<Account> _accountRepository;
 
         private QueryAccountListNotification _accountsList;
 
-        public FindAccountByTypeQueryHandle(IMapper mapper, IFastMiddleware fastMiddleware)
+        public FindAccountByTypeQueryHandle(IMapper mapper, IFastMiddleware fastMiddleware, IRepository<Account> accountRepository)
         {
             this._mapper = mapper;
             this._fastMiddleware = fastMiddleware;
-            this._accountRepository = new AccountRepository(new AccountContext(new DbContextOptions<AccountContext>()));
+            this._accountRepository = accountRepository;
             this._accountsList = new QueryAccountListNotification();
             this._accountsList.accounts = new List<QueryAccountNotification>();
         }

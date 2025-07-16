@@ -54,6 +54,8 @@ namespace mediator_cqrs_project
             services.AddSingleton(mapper);
             services.AddDbContext<AccountContext>(connctionString => connctionString.UseSqlServer(Configuration.GetConnectionString("LocalConnection")));
             services.AddFastMiddleware(typeof(Startup).GetTypeInfo().Assembly);
+            services.AddTransient<IRepository<Account>, AccountRepository>();
+            services.AddTransient<AccountContext, AccountContext>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
